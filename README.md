@@ -1,3 +1,7 @@
+-=(Altair8800_Senhor notes)=- Notes)=-
+Synthesizing does not complete...
+Using MiSTer's binary instead. 
+
 Altair8800_Mister
 =================
 ![alt text](./images/Altair8800_MiSTer.png)
