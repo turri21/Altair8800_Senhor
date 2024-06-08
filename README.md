@@ -1,4 +1,4 @@
--=(Altair8800_Senhor notes)=- Notes)=-
+-=(Altair8800_Senhor notes)=-
 
 Synthesizing does not complete...
 
