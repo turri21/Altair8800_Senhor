@@ -1,5 +1,3 @@
-Status: Not working
-
 -=(Altair8800_Senhor notes)=-
 
 Synthesizing does not complete...
