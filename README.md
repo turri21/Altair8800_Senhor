@@ -40,6 +40,8 @@ These samples are accessible through the MiSTer Core OSD (F12) in the "Select Pr
 - zeroToseven
 
       256 bytes of memory with 1st 8 bytes as 0 to 7.
+      First press the RESET toggle, then you can use the EXAMINE NEXT to step through 
+      the data in memory.  You will see the values 0 to 7 as binary on the data LEDs.
           
 - KillBits
 
@@ -64,11 +66,12 @@ These samples are accessible through the MiSTer Core OSD (F12) in the "Select Pr
       Comumicates with serial port requires SENSE swithes to be set to 0xFD.
       this is the basic interpreter originally created by Bill Gates and Paul Allen.
       
-  The Basic4k32 require the serial port to be setup and the sense switches to be set this way:
+  The Basic4k32 requires the serial port to be setup and the sense switches to be set like this (note the sense switches are the switches below the upper 8 address LEDs).  Basic will not start properly unless the sense switches are set:
     - 15 to 10 ON
     - 9 OFF
     - 8 ON
     
+   The sense switches control some aspects of initializing the serial port on the Altair8800.
 ## Altair operation
 http://altairclone.com/altair_experience.htm
 
@@ -96,16 +99,35 @@ MiSTer Core OSD (F12) :
       
 - “Reset” 
 
-      This will reset the core.
+      This will reset the core. Note this is not the same as RESET on the fron panel (which sets the program counter to 0).
       
+- “Help” 
+
+      This will show this document on the Mister display.
   
 ## Serial port
-- To use the serial port you need to have an I/O Board v5.5 or do a hardware Wiring:
+- We have implemented a serial port as part of the Altair8800 core.  To use it you need to have an I/O Board v5.5 or later with a USER I/O port.  If you do not have this I/O board you can wire directly to the DE10-Nano.
+
+Without the I/O board:
   - Any USB to 3.3V (NOT 5.5V) TTL Serial Cable Adapter should work.
   - TX of the TTL Serial Cable Adapter -> SCL Arduino_IO15 pin of the DE-10.
   - RX of the TTL Serial Cable Adapter -> SDA Arduino_IO14 pin of the DE-10.
   - Don't forget to wire the Ground.
-- Use Putty or TeraTerm for client and use the 19200 baud setting.
+
+With the I/O board:
+The User Port (which looks like a USB 3.1A connector) is documented here: https://github.com/MiSTer-devel/Wiki_MiSTer/wiki/emu---Top-Level-of-a-MiSTer-core
+  - Any USB to 3.3V (NOT 5.5V) TTL Serial Cable Adapter should work.
+  - TX of the TTL Serial Cable Adapter -> SCL pin 3 of the User Port.
+  - RX of the TTL Serial Cable Adapter -> SDA pin 2 of the User Port.
+  - Don't forget to wire the Ground -> GND pin 4 of the User Port.
+  
+Use Putty or TeraTerm as a client and use the 19200 baud setting (this is required to run the Basic4k32 example).
+
+This cable should work fine.
+https://a.co/d/dMlEKn4 
+
+with this USB adapter
+https://a.co/d/1VpqE5a 
 
 ![alt text](./images/DE-10_Serial.png)
   

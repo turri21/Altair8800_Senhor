@@ -30,7 +30,7 @@ module emu
 	input         RESET,
 
 	//Must be passed to hps_io module
-	inout  [44:0] HPS_BUS,
+	inout  [48:0] HPS_BUS,
 
 	//Base video clock. Usually equals to CLK_SYS.
 	output        CLK_VIDEO,
@@ -55,6 +55,41 @@ module emu
 	output [1:0]  VGA_SL,
 	
 	output        LED_USER,  // 1 - ON, 0 - OFF.
+
+	// I/O board button press simulation (active high)
+	// b[1]: user button
+	// b[0]: osd button
+	output  [1:0] BUTTONS,
+	input         CLK_AUDIO, // 24.576 MHz
+	
+	input  [11:0] HDMI_WIDTH,
+	input  [11:0] HDMI_HEIGHT,
+	output        HDMI_FREEZE,
+	output        HDMI_BLACKOUT,
+	
+	output        VGA_SCALER, // Force VGA scaler
+	output        VGA_DISABLE, // analog out is off
+
+	//ADC
+	inout   [3:0] ADC_BUS,
+
+	input         UART_CTS,
+	output        UART_RTS,
+	input         UART_RXD,
+	output        UART_TXD,
+	output        UART_DTR,
+	input         UART_DSR,
+
+	// Open-drain User port.
+	// 0 - D+/RX
+	// 1 - D-/TX
+	// 2..6 - USR2..USR6
+	// Set USER_OUT to 1 to read from USER_IN.
+	input   [6:0] USER_IN,
+	output  [6:0] USER_OUT,
+
+	input         OSD_STATUS,
+
 
 	// b[1]: 0 - LED status is system status OR'd with b[0]
 	//       1 - LED status is controled solely by b[0]
@@ -99,13 +134,12 @@ module emu
 	output        SDRAM_nCS,
 	output        SDRAM_nCAS,
 	output        SDRAM_nRAS,
-	output        SDRAM_nWE,
-	input         RX,
-	output        TX
+	output        SDRAM_nWE
 );
 
-`include "common.sv"
+`include "rtl/display/common.sv"
 
+	// Add these assignments to provide default values for undriven outputs
 assign {SD_SCK, SD_MOSI, SD_CS} = 'Z;
 assign {SDRAM_DQ, SDRAM_A, SDRAM_BA, SDRAM_CLK, SDRAM_CKE, SDRAM_DQML, SDRAM_DQMH, SDRAM_nWE, SDRAM_nCAS, SDRAM_nRAS, SDRAM_nCS} = 'Z;
 assign {DDRAM_CLK, DDRAM_BURSTCNT, DDRAM_ADDR, DDRAM_DIN, DDRAM_BE, DDRAM_RD, DDRAM_WE} = 0;
@@ -118,6 +152,21 @@ assign VIDEO_ARX = 16;
 assign VIDEO_ARY = 9;
 
 assign sconf = status[13:10];
+
+assign VGA_F1 = 1'b0;
+assign VGA_SL = 2'b00;
+assign BUTTONS = 2'b00;
+assign HDMI_FREEZE = 1'b0;
+assign HDMI_BLACKOUT = 1'b0;
+assign VGA_SCALER = 1'b0;
+assign VGA_DISABLE = 1'b0;
+assign UART_RTS = 1'b0;
+assign UART_DTR = 1'b0;
+assign USER_OUT = 7'b0000000;
+assign AUDIO_L = 1'b0;
+assign AUDIO_R = 1'b0;
+assign AUDIO_S = 1'b0;
+assign AUDIO_MIX = 1'b0;
 
 `include "build_id.v"
 localparam CONF_STR = {
@@ -164,8 +213,8 @@ altair machine
 (
  .clk(CLK_50M & ~on_off),
  .reset(reset_machine_delayed),
- .rx(RX),
- .tx(TX),
+ .rx(USER_IN[0]),
+ .tx(USER_IN[1]),
  .sync(sync),
  .interrupt_ack(interrupt_ack),
  .n_memWR(n_memWR),
@@ -218,12 +267,10 @@ wire [10:0] ps2_key;
 wire forced_scandoubler;
 
 
-hps_io #(.STRLEN($size(CONF_STR)>>3)) hps_io
+hps_io #(.CONF_STR(CONF_STR)) hps_io
 (
 	.clk_sys(CLK_VIDEO),
 	.HPS_BUS(HPS_BUS),
-
-	.conf_str(CONF_STR),
 
 	.ps2_key(ps2_key),
 	
@@ -283,6 +330,8 @@ reg clear;
 reg prot_led;
 reg wait_led;
 reg hold_ack_led;
+
+assign prot_led = 1'b0;
 
 front_panel_mapping	front_panel_mapping	
 (
