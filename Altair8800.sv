@@ -3,6 +3,7 @@
 // 
 //	 By Fred VanEijk and Cyril Venditti
 //  Created on 11/12/2018
+//  Updates: 13SEP24
 //
 //  This program is free software; you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License as published by the Free
@@ -162,11 +163,15 @@ assign VGA_SCALER = 1'b0;
 assign VGA_DISABLE = 1'b0;
 assign UART_RTS = 1'b0;
 assign UART_DTR = 1'b0;
-assign USER_OUT = 7'b0000000;
 assign AUDIO_L = 1'b0;
 assign AUDIO_R = 1'b0;
 assign AUDIO_S = 1'b0;
 assign AUDIO_MIX = 1'b0;
+assign UART_TXD = 1'b0;
+
+// this needs testing no sure if [0] or [1] same for mapping in machine
+// assign USER_OUT[1] = 1; // TX should be high Z
+assign USER_OUT = 7'b0000010;
 
 `include "build_id.v"
 localparam CONF_STR = {
@@ -177,7 +182,7 @@ localparam CONF_STR = {
 	"OA,Enable TurnMon,No,Yes;",
 	"T0,Reset;",
 	"-;",
-	"V,v1.1.",`BUILD_DATE
+	"V,v2.0.",`BUILD_DATE
 };
 
 ////////////////////   MACHINE   ///////////////////

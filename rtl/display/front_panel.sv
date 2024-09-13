@@ -146,7 +146,8 @@ module front_panel (
 	wire useSpriteColor;
 	wire useSpriteColorDelayed;
 	wire cursorSelectedDelayed;
-	  
+	wire cursorSelected;
+	
 	wire [4:0] cursor_index;
 	wire [5:0] sprite_index;
 	wire [5:0] sw_sprite_index[0:24];
