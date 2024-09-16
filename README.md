@@ -133,11 +133,11 @@ With the I/O board:
 The User Port (which looks like a USB 3.1A connector) is documented here: <https://github.com/MiSTer-devel/Wiki_MiSTer/wiki/emu---Top-Level-of-a-MiSTer-core>
 
 - Any USB to 3.3V (NOT 5.5V) TTL Serial Cable Adapter should work.
-  - TX of the TTL Serial Cable Adapter -> SCL pin 3 of the User Port.
-  - RX of the TTL Serial Cable Adapter -> SDA pin 2 of the User Port.
+  - TX of the TTL Serial Cable Adapter -> RX/SCL/D+ pin 3 of the User Port.
+  - RX of the TTL Serial Cable Adapter -> TX/SDA/D- pin 2 of the User Port.
   - Don't forget to wire the Ground -> GND pin 4 of the User Port.
   
-Use Putty or TeraTerm as a client and use the 19200 baud setting (this is required to run the Basic4k32 example).
+Use Putty or TeraTerm as a client and use the 19200 baud setting at 8 bits and no parity (this is required to run the Basic4k32 example).
 
 This cable should work fine.
 <https://a.co/d/dMlEKn4>
