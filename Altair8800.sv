@@ -182,7 +182,7 @@ module emu
 ///////// Default values for ports not used in this core /////////
 
 assign ADC_BUS  = 'Z;
-assign {UART_RTS, UART_TXD, UART_DTR} = 0;
+assign {UART_DTR} = 0;
 assign {SD_SCK, SD_MOSI, SD_CS} = 'Z;
 assign {SDRAM_DQ, SDRAM_A, SDRAM_BA, SDRAM_CLK, SDRAM_CKE, SDRAM_DQML, SDRAM_DQMH, SDRAM_nWE, SDRAM_nCAS, SDRAM_nRAS, SDRAM_nCS} = 'Z;
 assign {DDRAM_CLK, DDRAM_BURSTCNT, DDRAM_ADDR, DDRAM_DIN, DDRAM_BE, DDRAM_RD, DDRAM_WE} = '0;  
@@ -218,13 +218,13 @@ assign BUTTONS = 0;
 
 // this needs testing no sure if [0] or [1] same for mapping in machine
 // assign USER_OUT[1] = 0; // TX should be high Z
-assign USER_OUT[6] = 1'b1;
-assign USER_OUT[5] = 1'b1;
-assign USER_OUT[4] = 1'b1;
-assign USER_OUT[3] = 1'b1;
-assign USER_OUT[2] = 1'b1;
-//assign USER_OUT[1] = 1'b1;
-assign USER_OUT[0] = 1'b1;
+// assign USER_OUT[6] = 1'b1;
+// assign USER_OUT[5] = 1'b1;
+// assign USER_OUT[4] = 1'b1;
+// assign USER_OUT[3] = 1'b1;
+// assign USER_OUT[2] = 1'b1;
+// //assign USER_OUT[1] = 1'b1;
+// assign USER_OUT[0] = 1'b1;
 
 //////////////////////////////////////////////////////////////////
 
@@ -239,6 +239,7 @@ localparam CONF_STR = {
 	"O79,Select Program,Empty,zeroToseven,KillBits,SIOEcho,StatusLights,Basic4k32;",
 	"T6,Load Program;",
 	"OA,Enable TurnMon,No,Yes;",
+    "OC,Serial Port,Console Port,User IO Port;",  // New serial port selection option
 	"T0,Reset;",
 	"-;",
 	"V,v2.0.",`BUILD_DATE
@@ -273,12 +274,35 @@ wire resetPB;           // set PC to 0
 wire hold_in = 1'b0;
 wire ready_in = 1'b1;
 
+// Serial port selection
+wire serial_port_select = status[12];    // 0 = Console Port (UART), 1 = User IO Port
+
+// Define meaningful names for USER_IO signals
+// Input pins (USER_IN)
+wire user_rx = USER_IN[0];    // Serial RX from USER_IO port
+
+// Serial interface routing 
+wire rx = serial_port_select ? user_rx : UART_RXD;
+wire tx;
+
+// Serial port output routing
+assign UART_TXD = serial_port_select ? 1'b1 : tx;
+assign UART_RTS = 1'b1;  // No flow control - keep RTS disabled
+
+// USER_IO port control - single assignment for all outputs
+assign USER_OUT = {
+    4'b1111,        // [6:3] unused - set to 1
+    1'b1,           // [2] No RTS - set to 1
+    serial_port_select ? tx : 1'b1,    // [1] TX output
+    serial_port_select     // [0] RX input enable
+};
+
 altair machine
 (
  .clk(CLK_50M & ~on_off),
  .reset(reset_machine_delayed),
- .rx(USER_IN[0]),
- .tx(USER_OUT[1]),
+ .rx(rx),
+ .tx(tx),
  .sync(sync),
  .interrupt_ack(interrupt_ack),
  .n_memWR(n_memWR),
