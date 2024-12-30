@@ -236,8 +236,7 @@ assign VIDEO_ARY = 9;
 localparam CONF_STR = {
 	"Altair8800;;",
 	"-;",
-	"O79,Select Program,Empty,zeroToseven,KillBits,SIOEcho,StatusLights,Basic4k32;",
-	"T6,Load Program;",
+    "F0,ROM,Load Program;",  // S0 enables directory browsing for files with .ROM extension
 	"OA,Enable TurnMon,No,Yes;",
     "OC,Serial Port,Console Port,User IO Port;",  // New serial port selection option
 	"T0,Reset;",
@@ -330,7 +329,14 @@ altair machine
  .hold_in(hold_in),
  .ready_in(ready_in),
  .prg_sel(prg_sel),
- .enable_turn_mon(enable_turn_mon)
+ .enable_turn_mon(enable_turn_mon),
+
+     .ioctl_download(ioctl_download),
+    .ioctl_wr(ioctl_wr),
+    .ioctl_addr(ioctl_addr),
+    .ioctl_dout(ioctl_dout),
+	.ioctl_wait(ioctl_wait),
+    .img_mounted(img_mounted)
 );
 
 ////////////////////   CLOCKS   ///////////////////
@@ -345,6 +351,17 @@ pll pll
 	.locked(locked)
 );
 
+//////////////////   ROM LOADING   ///////////////////
+wire        ioctl_download;
+wire  [7:0] ioctl_index;
+wire        ioctl_wr;
+wire [24:0] ioctl_addr;
+wire  [7:0] ioctl_dout;
+wire        ioctl_wait;
+
+// Add a signal to track when new file is selected
+reg [31:0] img_size;
+wire       img_mounted;
 
 //////////////////   HPS I/O   ///////////////////
 wire  [1:0] buttons;
@@ -367,7 +384,19 @@ hps_io #(.CONF_STR(CONF_STR)) hps_io
 	.status(status),
 	.status_menumask({status[5]}),
 	
-	.ps2_key(ps2_key)
+	.ps2_key(ps2_key),
+
+    // Add ioctl interface
+    .ioctl_download(ioctl_download),
+    .ioctl_index(ioctl_index),
+    .ioctl_wr(ioctl_wr),
+    .ioctl_addr(ioctl_addr),
+    .ioctl_dout(ioctl_dout),
+    .ioctl_wait(ioctl_wait),
+
+    // Track mounted files
+    .img_mounted(img_mounted),
+    .img_size(img_size)	
 );
 
 /////////////////  RESET  /////////////////////////
@@ -396,14 +425,6 @@ delay
   .data_out(reset_machine_delayed)
 );
 
-/////////////////  MENU  /////////////////////////
-reg [2:0] prg_sel;
-wire prg_load = status[6];
-wire enable_turn_mon = status[10];
-
-always @(posedge prg_load) begin
-  prg_sel = status[9:7];
-end
 
 /////////////////  FRONT PANEL  //////////////////////////////////
 // 0 to 9 Status

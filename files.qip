@@ -1,5 +1,5 @@
 set_global_assignment -name VERILOG_FILE rtl/roms/altair/turnmon_mem.v
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/roms/altair/samples_mem.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/roms/altair/samples_mem_bin_io.sv
 set_global_assignment -name VERILOG_FILE rtl/roms/altair/basic4k32_mem.v
 set_global_assignment -name VERILOG_FILE rtl/display/sram_image_bb.v
 set_global_assignment -name VERILOG_FILE rtl/display/sram_image.v
@@ -13,10 +13,8 @@ set_global_assignment -name SYSTEMVERILOG_FILE rtl/display/common.sv
 set_global_assignment -name VERILOG_FILE rtl/core/vm80a.v
 set_global_assignment -name VERILOG_FILE rtl/core/simpleuart.v
 set_global_assignment -name VERILOG_FILE rtl/core/sense_switch.v
-set_global_assignment -name VERILOG_FILE rtl/core/rom_memory.v
 set_global_assignment -name VERILOG_FILE rtl/core/reset.v
 set_global_assignment -name VERILOG_FILE rtl/core/ram_memory.v
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/core/prg_memory.sv
 set_global_assignment -name VERILOG_FILE rtl/core/mc6850.v
 set_global_assignment -name VERILOG_FILE rtl/core/jmp_boot.v
 set_global_assignment -name VERILOG_FILE rtl/core/frequency_divider.v

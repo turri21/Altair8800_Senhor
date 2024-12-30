@@ -34,11 +34,13 @@ By Fred VanEijk and Cyril Venditti.
 
 ## Available samples
 
-These samples are accessible through the MiSTer Core OSD (F12) in the "Select Program" section.
+These samples are accessible through the MiSTer Core OSD (F12) in the "Load Program *.ROM" section.
+
+The .rom files in the repository Altair8800_Mister rtl/roms/games directory should be copied to the fat/games/Altair8800 directory on the MiSTer.
 
 - Empty
 
-      256 bytes of zeroed memory at address 0x0000.
+      4k bytes of zeroed memory at address 0x0000.
 
 - zeroToseven
 
@@ -52,20 +54,20 @@ These samples are accessible through the MiSTer Core OSD (F12) in the "Select Pr
       Object: Kill the rotating bit. If you miss the lit bit, another bit turns on leaving two bits to destroy. 
       Quickly toggle the switch, don't leave the switch in the up position. 
       Before starting, make sure all the switches are in the down position.
-      see: rtl\roms\altair\killbits.txt
+      see: rtl\roms\source\killbits.asm
        
 - SIOEcho (See Serial port section)
 
       256 bytes to test serial port at port 00/01.
       Just echos the character typed on the terminal.
-      see: rtl\roms\altair\SIOEcho.txt
+      see: rtl\roms\source\SIOEcho.asm
   
 - StatusLights
 
       Demonstrate status light combinations.
       Halts the cpu when done so requires a reset of the core.
       Single Step this one.
-      see: rtl\roms\altair\StatusLights.txt
+      see: rtl\roms\source\StatusLights.asm
 
 - Basic4k32 (see Serial port section)
 
@@ -81,6 +83,7 @@ These samples are accessible through the MiSTer Core OSD (F12) in the "Select Pr
       - 9 OFF
       - 8 ON
       The sense switches control some aspects of initializing the serial port on the Altair8800.
+      see: rtl\roms\source\basic4k32.asm
 
 ## Altair operation
 
@@ -90,17 +93,13 @@ These samples are accessible through the MiSTer Core OSD (F12) in the "Select Pr
 
 MiSTer Core OSD (F12 or OSD button) :
 
-- “Select Program”
-
-      See Available samples section.
-
-- “Load Program”
+- “Load Program *.ROM”
 
       Do this switch sequence to run a progrm:
       - Turn the ON/OFF switch to ON
       - Insure that the STOP/RUN switch is STOP
-      - Load a program by using the "Select Program" option then press "Load Program".
-            Once you press "Load Program" the Core will place that program in memory.
+      - Load a program by using the "Load Program" to select the rom file and load it into memory.
+            Once you select the rom file the Core will place that program in memory.
       Finally do:
       - RESET with the RESET/CLR switch
       - Turn the STOP/RUN switch to RUN alternatively use SINGLE STEP

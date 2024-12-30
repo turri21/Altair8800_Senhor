@@ -35,8 +35,14 @@ module altair(
   input deposit_nextPB,
   input resetPB,
   input [2:0] prg_sel,
-  input enable_turn_mon
-);
+  input enable_turn_mon,
+
+    input        ioctl_download,
+    input        ioctl_wr,
+    input [24:0] ioctl_addr,
+    input  [7:0] ioctl_dout,
+    output       ioctl_wait,
+    input        img_mounted);
   
   `include "../display/common.sv"
   
@@ -52,6 +58,31 @@ module altair(
   reg ms, intrq;
   wire rst_n;
 
+/////////////////  LOAD ROM  /////////////////////////
+  // Track ROM loading state
+  reg [12:0] rom_addr;
+  reg rom_loaded;
+  reg prev_download;
+  always @(posedge clk) begin
+      if(reset) begin
+          rom_loaded <= 0;
+          rom_addr <= 0;
+          prev_download <= 0;
+      end
+      else begin
+          prev_download <= ioctl_download;
+          
+          if(ioctl_download) begin
+              if(ioctl_wr) begin
+                  rom_addr <= rom_addr + 1'd1;
+              end
+          end
+          // Set rom_loaded when download completes
+          else if(prev_download && !ioctl_download) begin
+              rom_loaded <= 1;
+          end
+      end
+  end
 
   ////////////////////   STEP & GO   ////////////////////
   reg		stepkey;
@@ -488,24 +519,26 @@ vm80a_core cpu
   );
 
  
-  //rom_memory #(.DATA_WIDTH(8),.ADDR_WIDTH(8),.FILENAME("../roms/altair/turnmon.bin.mem")) turnmon(.clk(clk),.addr(addr[7:0]),.rd(rd_turnmon),.data_out(turnmon_out));
   turnmon_mem #(.DATA_WIDTH(8),.ADDR_WIDTH(8)) turnmon(.clk(clk),.addr(addr[7:0]),.rd(rd_turnmon),.data_out(turnmon_out));
 
   ram_memory #(.DATA_WIDTH(8),.ADDR_WIDTH(8)) stack(.clk(clk),.addr(addr[7:0]),.data_in(stack_in),.rd(rd_stack),.we(wr_stack),.data_out(stack_out));
 
-  //ram_memory #(.DATA_WIDTH(8),.ADDR_WIDTH(13),.FILENAME("../roms/altair/basic4k32.bin.mem")) mainmem(.clk(clk),.addr(addr[12:0]),.data_in(rammain_in),.rd(rd_rammain),.we(wr_rammain),.data_out(rammain_out));
-  
-  //basic4k32_mem #(.DATA_WIDTH(8),.ADDR_WIDTH(13)) mainmem(.clk(clk),.addr(addr[12:0]),.data_in(rammain_in),.rd(rd_rammain),.we(wr_rammain),.data_out(rammain_out));
-  samples_mem #(.DATA_WIDTH(8),.ADDR_WIDTH(13)) mainmem(.prg_sel(prg_sel),.clk(clk),.addr(addr[12:0]),.data_in(rammain_in),.rd(rd_rammain),.we(wr_rammain),.data_out(rammain_out));
-  //ram_memory #(.DATA_WIDTH(8),.ADDR_WIDTH(13),.FILENAME("../roms/altair/tinybasic-1.0.bin.mem")) mainmem(.clk(clk),.addr(addr[12:0]),.data_in(rammain_in),.rd(rd_rammain),.we(wr_rammain),.data_out(rammain_out));
-
-  //ram_memory #(.DATA_WIDTH(8),.ADDR_WIDTH(13),.FILENAME("../roms/altair/serialporttest.bin.mem")) mainmem(.clk(clk),.addr(addr[12:0]),.data_in(rammain_in),.rd(rd_rammain),.we(wr_rammain),.data_out(rammain_out));
-
-  reg [7:0] prg1_in;
-  wire [7:0] prg1_out;
-  reg wr_prg1;
-  reg rd_prg1;
-  prg_memory #(.DATA_WIDTH(8),.ADDR_WIDTH(8),.RAM_DATA_LEN(8),.RAM_DATA('{8'h00, 8'h01, 8'h02, 8'h03, 8'h04, 8'h05, 8'h06, 8'h07})) prg_1(.clk(clk),.addr(addr[7:0]),.data_in(prg1_in),.rd(rd_prg1),.we(wr_prg1),.data_out(prg1_out));
+    // Pass ROM loading signals to memory module
+    samples_mem_bin_io mainmem
+    (
+        .clk(clk),
+        .addr(addr[12:0]),
+        .data_in(rammain_in),
+        .rd(rd_rammain),
+        .we(wr_rammain),
+        .data_out(rammain_out),
+        .ioctl_download(ioctl_download),
+        .ioctl_wr(ioctl_wr),
+        .ioctl_addr(ioctl_addr),
+        .ioctl_data(ioctl_dout),
+        .ioctl_wait(ioctl_wait),  // Add this connection
+        .rom_loaded(rom_loaded)
+    );
 
 ///////// TERMINAL SERIAL ////////////
   mc6850 #(.CLOCK(2000000),.BAUD(19200)) sio
